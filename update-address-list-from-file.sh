@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DEBUG="0"
+DEBUG="3"
 
 ROUTEROS_HOST="$1"
 USERNAME="$2"
@@ -14,6 +14,12 @@ if [ -z "${LIST_NAME}" ]
 then
 	echo "missing list name" >&2
 	exit 1
+fi
+
+echo "${LIST_NAME}" | grep "/"
+if [ "$?" -eq "0" ]
+then
+	LIST_NAME=$( basename ${LIST_NAME} )
 fi
 
 if [ -f "${LIST_PATH}" ]
@@ -37,7 +43,7 @@ then
 	echo "${NEW_LIST}" > "${TMP_NEW_LIST_FILE}"
 
 
-	DIFF=$(diff -u "${TMP_CURRENT_LIST_FILE}" "${TMP_NEW_LIST_FILE}" )
+	DIFF=$(diff -u "${TMP_CURRENT_LIST_FILE}" "${TMP_NEW_LIST_FILE}" |tail -n +3)
 
 if [ "${DEBUG}" -gt "0" ];then
 	if [ -z "${DIFF}" ]
@@ -51,7 +57,7 @@ fi
 	if [ ! -z "${DIFF}" ]
 	then
 
-	DELETE_OBJECTS=$(echo "${DIFF}" |egrep "^\-" |sed "s@^\-@@g")
+	DELETE_OBJECTS=$(echo "${DIFF}" | egrep "^\-" |sed "s@^\-@@g")
 	ADD_OBJECTS=$(echo "${DIFF}" |egrep "^\+" |sed "s@^\+@@g")
 
 	echo "${DELETE_OBJECTS}" > "${TMP_CLEANUP_TRANSACTION_FILE}"
